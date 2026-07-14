@@ -3,7 +3,7 @@
 A simple, receipt-styled expense tracker built with vanilla HTML, CSS, and JavaScript. Add expenses, categorize them, and track your running total — all saved locally in your browser.
 
 ## 🔗 Live Demo
-*(coming soon — will add link after deploying via GitHub Pages)*
+[Try it live here](https://patlollavarsha.github.io/expense-tracker/expense-tracker.html)
 
 ## ✨ Features
 - Add an expense with a description, category, and amount
