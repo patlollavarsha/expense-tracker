@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledger — Expense Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1F1D1B;
+    --paper: #F7F4EC;
+    --ink: #2A2724;
+    --ink-soft: #6B655C;
+    --accent: #E8590C;
+    --line: #D9D3C4;
+    --danger: #B23A2E;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(232,89,12,0.06), transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(232,89,12,0.05), transparent 40%);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px 80px;
+    color: var(--ink);
+  }
+
+  .wrap{
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .brand{
+    text-align: center;
+    color: #B7B0A2;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+    font-weight: 600;
+  }
+
+  .receipt{
+    background: var(--paper);
+    padding: 32px 28px 0;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+    position: relative;
+  }
+
+  .receipt::after{
+    content: "";
+    display: block;
+    height: 16px;
+    background:
+      linear-gradient(135deg, var(--paper) 50%, transparent 50%) 0 0,
+      linear-gradient(-135deg, var(--paper) 50%, transparent 50%) 0 0;
+    background-size: 16px 16px;
+    background-repeat: repeat-x;
+    margin-top: 20px;
+  }
+
+  .title-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 2px dashed var(--line);
+    padding-bottom: 16px;
+    margin-bottom: 18px;
+  }
+
+  .title-row h1{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 20px;
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+
+  .title-row .date{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+
+  form{
+    display: grid;
+    grid-template-columns: 1fr 100px;
+    gap: 10px 10px;
+    margin-bottom: 18px;
+  }
+
+  form input, form select{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 10px 10px;
+    border: 1px solid var(--line);
+    background: #FFFDF9;
+    color: var(--ink);
+    outline: none;
+  }
+
+  form input:focus, form select:focus{
+    border-color: var(--accent);
+  }
+
+  #desc{ grid-column: 1 / 2; }
+  #amount{ grid-column: 2 / 3; text-align: right; }
+  #category{ grid-column: 1 / 2; }
+
+  .add-btn{
+    grid-column: 2 / 3;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .add-btn:hover{ background: var(--accent); }
+
+  .items{
+    border-bottom: 2px dashed var(--line);
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    min-height: 40px;
+  }
+
+  .empty-state{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-align: center;
+    padding: 24px 0;
+  }
+
+  .item{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 8px 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    border-bottom: 1px solid #EAE5D8;
+    gap: 8px;
+  }
+
+  .item:last-child{ border-bottom: none; }
+
+  .item-left{
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .item-name{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .item-cat{
+    font-size: 10px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 2px;
+  }
+
+  .item-right{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .void-btn{
+    background: none;
+    border: none;
+    color: var(--danger);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+  }
+
+  .total-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0 20px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .total-label{
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .total-amount{
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stamp{
+    position: absolute;
+    top: 26px;
+    right: -8px;
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    transform: rotate(8deg);
+    opacity: 0.85;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="brand">Ledger — a running record</div>
+
+  <div class="receipt">
+    <div class="stamp" id="stamp">TRACKED</div>
+    <div class="title-row">
+      <h1>Expenses</h1>
+      <span class="date" id="today"></span>
+    </div>
+
+    <form id="expense-form">
+      <input type="text" id="desc" placeholder="What did you buy?" required maxlength="40">
+      <select id="category">
+        <option value="Food">Food</option>
+        <option value="Transport">Transport</option>
+        <option value="Bills">Bills</option>
+        <option value="Fun">Fun</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="number" id="amount" placeholder="0.00" step="0.01" min="0" required>
+      <button type="submit" class="add-btn">ADD →</button>
+    </form>
+
+    <div class="items" id="items"></div>
+
+    <div class="total-row">
+      <span class="total-label">Total spent</span>
+      <span class="total-amount" id="total">₹0.00</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'ledger-expenses';
+  const form = document.getElementById('expense-form');
+  const itemsEl = document.getElementById('items');
+  const totalEl = document.getElementById('total');
+  const todayEl = document.getElementById('today');
+
+  todayEl.textContent = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+  function loadExpenses(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){
+      return [];
+    }
+  }
+
+  function saveExpenses(expenses){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
+  }
+
+  let expenses = loadExpenses();
+
+  function formatMoney(n){
+    return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function render(){
+    itemsEl.innerHTML = '';
+
+    if(expenses.length === 0){
+      itemsEl.innerHTML = '<div class="empty-state">No expenses yet — add your first item above.</div>';
+    } else {
+      expenses.slice().reverse().forEach((exp) => {
+        const row = document.createElement('div');
+        row.className = 'item';
+        row.innerHTML = `
+          <div class="item-left">
+            <span class="item-name">${escapeHtml(exp.desc)}</span>
+            <span class="item-cat">${escapeHtml(exp.category)}</span>
+          </div>
+          <div class="item-right">
+            <span>${formatMoney(exp.amount)}</span>
+            <button class="void-btn" data-id="${exp.id}">void</button>
+          </div>
+        `;
+        itemsEl.appendChild(row);
+      });
+    }
+
+    const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+    totalEl.textContent = formatMoney(total);
+
+    document.querySelectorAll('.void-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        expenses = expenses.filter(e => String(e.id) !== id);
+        saveExpenses(expenses);
+        render();
+      });
+    });
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const desc = document.getElementById('desc').value.trim();
+    const category = document.getElementById('category').value;
+    const amount = parseFloat(document.getElementById('amount').value);
+
+    if(!desc || isNaN(amount) || amount <= 0) return;
+
+    expenses.push({
+      id: Date.now(),
+      desc,
+      category,
+      amount
+    });
+
+    saveExpenses(expenses);
+    form.reset();
+    document.getElementById('desc').focus();
+    render();
+  });
+
+  render();
+</script>
+
+</body>
+</html>
