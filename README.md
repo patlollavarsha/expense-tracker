@@ -1,5 +1,3 @@
-# expense-tracker
-A receipt-styled expense tracker built with HTML, CSS, and JavaScript
 # 🧾 Ledger — Expense Tracker
 
 A simple, receipt-styled expense tracker built with vanilla HTML, CSS, and JavaScript. Add expenses, categorize them, and track your running total — all saved locally in your browser.
